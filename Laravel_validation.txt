@@ -1,0 +1,29 @@
+Writing The Validation Logic
+   $validated = $request->validate([
+        'title' => 'required|unique:posts|max:255',
+        'body' => 'required',
+    ]);
+
+   in blade
+   @if ($errors->any())
+       <div class="alert alert-danger">
+           <ul>
+               @foreach ($errors->all() as $error)
+                   <li>{{ $error }}</li>
+               @endforeach
+           </ul>
+       </div>
+   @endif
+
+  custom validator 
+  use Illuminate\Support\Facades\Validator;
+
+  $validator = Validator::make($request->all(), [
+      'reply_message' => 'required',
+  ]);
+  
+  if ($validator->fails()) {
+      return back()->with('danger', trans('lang.mail_reply_error'));
+  }
+
+

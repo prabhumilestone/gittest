@@ -1,0 +1,332 @@
+Install Laravel
+    - composer create-project laravel/laravel folder/project_name
+    - cd folder/project_name
+    - php artisan key:generate
+    - php artisan vendor:publish
+
+Serve The App 
+    - php artisan sevre || php -S localhost:8000 -t public/
+
+Directory structure
+    -app
+        -Console
+            -kernel.php ( for scheduler )
+                Example 
+                    $schedule->command('inspire')->hourly();
+                    $schedule->call("App\Http\Controllers\cron\cronController@project_balance_update")->everyMinute();
+                    $schedule->call("App\Http\Controllers\cron\cronController@project_balance_update")->cron('* * * * *')
+        -Exceptions
+        -Http
+            -Controllers
+            -Middleware
+                1) Default Middlewares
+                    Authenticate,
+                    RedirectIfAuthenticated,
+                    VerifyCsrfToken ( use except array to remove specific url from csrf)
+            -kernel.php (The application's global HTTP middleware stack. add new middleware if you want globally $middleware property)   
+        -Models
+        -Providers
+            1) Default Service Provider
+                App,
+                Auth,
+                Broadcast,
+                Event,
+                Route 
+                    Use
+                    1 ) Typically, users are redirected here after authentication 
+                        example: public const HOME = '/home';
+                    2 ) Define your route model bindings, pattern filters, and other route configuration. (inside boot() function)
+                        example:    $this->routes(function () {
+                                        Route::middleware('api')
+                                            ->prefix('api')
+                                            ->group(base_path('routes/api.php'));
+
+                                        Route::middleware('web')
+                                            ->group(base_path('routes/web.php'));
+                                    });
+    -bootstrap
+    -config
+        -app.php 
+            app name , app environment , asset_url , timezone , locale , Providers
+        -auth.php
+        -cors.php
+        -database.php
+        -mail.php
+        -sanctum.php
+        -session.php
+            expire_on_close
+    -database
+        -factories
+        -migrations
+        -seeders
+    -docker
+    -public
+    -resources
+        -css
+        -js
+        -views
+    -routes
+        -api.php
+        -web.php
+    -storage
+        -logs
+            -laravel.log
+    -tests
+    -vendor
+    -.env
+    -composer.json ( installed vendor version with dependencies )
+    -composer.lock 
+
+almost all things are in .env file
+
+
+Authentication Default
+
+    Jetstream
+        -composer require laravel/jetstream 
+        -php artisan jetstream:install livewire
+        -npm install
+        -npm run dev
+        -php artisan migrate
+
+    UI 
+        -composer require laravel/ui
+        -php artisan ui bootstrap --auth
+        -npm install
+        -npm run dev
+        -php artisan migrate
+
+    Breeze
+        -composer require laravel/breeze --dev
+        -php artisan breeze:install blade
+        -npm install
+        -npm run dev
+        -php artisan migrate
+
+
+Life Cycle
+    -The entry point for all requests to a Laravel application is the public/index.php file. -> app/Http/Kernel.php (pass through each $middleware property  ) ->  
+
+
+Facades 
+    -Example
+        use Illuminate\Support\Facades\Response;
+        Route::get('/users', function () {
+            return response()->json([
+                // ...
+            ]);
+        });
+
+
+Facades vs Helper Functions
+    return Illuminate\Support\Facades\View::make('profile');
+    
+    return view('profile');
+
+To include custom route file 
+
+    -let say we created a rouite file admin-route.php . to access the route of that in web.php at end add 
+        include 'admin-route.php';
+
+
+Custom  Login Logout 
+
+    Login
+        -Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->remember)
+    Logout
+        -Auth::guard('web')->logout();
+
+
+Laravel Breeze + Laravel Sanctum 
+    
+    at login 
+    public function signin(Request $request){
+
+
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+ 
+        if (Auth::attempt($credentials)) {
+            $authUser = Auth::user();
+            $success['token'] = $authUser->createToken('MyAuthApp')->plainTextToken;
+            return  response()->json($success);
+        }else{
+            return  response()->json(['error'=>'enter data']);
+        }
+    }
+    - return a token at success
+    - in Authorization as Bearer add token 
+    - at the api call in header add the Accept -> application/json 
+
+
+Resource Controllers
+
+    Use 
+        -For example, imagine your application contains a Photo model and a Movie model. It is likely that users can create, read, update, or delete these resources.
+    Command 
+        -php artisan make:controller PhotoController --resource
+
+Excluding URIs From CSRF Protection
+    at VerifyCsrfToken middleware
+    protected $except = [
+        'stripe/*',
+        'http://example.com/foo/bar',
+        'http://example.com/foo/*',
+    ];
+
+Upload file in Laravel
+    $file = $request->file('file');
+    $file->move(base_path('\modo\images'), $file->getClientOriginalName());
+
+Redirect
+    return redirect('home/dashboard');
+    return back()->withInput();
+
+Redirecting To Named Routes
+    return redirect()->route('login');
+    return redirect()->route('profile', ['id' => 1]);
+
+Redirecting To Controller Actions
+    return redirect()->action([UserController::class, 'index']);
+
+    return redirect()->action(
+        [UserController::class, 'profile'], ['id' => 1]
+    );
+
+Redirecting With Flashed Session Data
+    return redirect('dashboard')->with('status', 'Profile updated!');
+
+    Blade
+    @if (session('status'))
+        <div class="alert alert-success">
+            {{ session('status') }}
+        </div>
+    @endif
+
+JSON Responses
+    return response()->json([
+        'name' => 'Abigail',
+        'state' => 'CA',
+    ]);
+
+File Downloads
+    return response()->download($pathToFile, $name, $headers);
+
+Localization
+    By default, the Laravel application skeleton does not include the lang directory. If you would like to customize Laravel's language files or create your own, you should scaffold the lang directory via the             
+    lang:publish Artisan command. The lang:publish command will create the lang directory in your application and publish the default set of language files used by Laravel:
+    
+    php artisan lang:publish
+    
+    __('file.index')
+    trans('file.index')
+
+Middleware
+    access all guest web route except logout , guest can not access logout because not logged in
+    $this->middleware('guest:web', ['except' => ['logout']]);
+    $this->middleware('guest:admin');
+
+Send mail
+    Mail::send([], [], function ($message)use($emails,$email_attachment,$mail_message){
+
+                $message->to($emails->mail_to);
+                $message->subject($emails->subject);
+                $message->from($emails->mail_from);
+                if($emails->cc!=''){
+                    $message->cc($emails->cc);
+                }
+                if($emails->bcc!=''){
+                    $message->bcc($emails->bcc);
+                }
+                $message->setBody($mail_message, 'text/html');
+//                if(!empty($attachments)){
+//                    foreach($attachments as $key=>$value){
+                if($email_attachment!=''){
+                    $message->attach($email_attachment);
+                }
+//                    }
+//                }
+            });
+
+
+    Mail::send('email.rb-mail', $emaildata, function($message) use ($emaildata,$attachment,$cc) {
+        $to = $emaildata['to'];
+        $email = 'info@rocket-backlinks.de';
+        $name = 'ROCKET BACKLINKS GmbH';
+        $message->to($to, 'RB')->subject($emaildata['subject']);
+        if($cc!=''){
+            $message->cc($cc);
+        }
+        if($attachment!=''){
+            $message->attach($attachment);
+        }
+        $message->from($email,$name);
+    });
+
+Route::get('/flights', function () {
+    // Only authenticated users may access this route...
+})->middleware('auth:admin');
+
+Manually Authenticating Users
+    class LoginController extends Controller
+    {
+        /**
+         * Handle an authentication attempt.
+         */
+        public function authenticate(Request $request): RedirectResponse
+        {
+            $credentials = $request->validate([
+                'email' => ['required', 'email'],
+                'password' => ['required'],
+            ]);
+     
+            if (Auth::attempt($credentials)) {
+                $request->session()->regenerate();
+     
+                return redirect()->intended('dashboard');
+            }
+     
+            return back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ])->onlyInput('email');
+        }
+    }
+
+If needed, you may specify an authentication guard before calling the login method:
+    Auth::guard('admin')->login($user);
+
+Login specific user without password
+    Auth::login($user, $remember = true);
+
+Authenticate A User By ID
+    Auth::loginUsingId(1);
+Logout
+    Auth::logout();
+
+Gate
+    if (Gate::forUser($user)->allows('update-post', $post)) {
+        // The user can update the post...
+    }
+     
+    if (Gate::forUser($user)->denies('update-post', $post)) {
+        // The user can't update the post...
+    }
+
+Pagination 
+    Controller
+        use App\Models\User;
+        $users = User::paginate(15);
+    Blade
+        <div class="container">
+            @foreach ($users as $user)
+                {{ $user->name }}
+            @endforeach
+        </div>
+         
+        {{ $users->links() }}
+
+    Adjusting The Pagination Link Window
+        {{ $users->onEachSide(5)->links() }}
+

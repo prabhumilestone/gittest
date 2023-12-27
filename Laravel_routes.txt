@@ -1,0 +1,161 @@
+Routes
+    -Example
+        use App\Http\Controllers\UserController;
+        Route::get('/user', [UserController::class, 'index'])->name('user');
+
+Available Router Methods
+    Route::get($uri, $callback);
+    Route::post($uri, $callback);
+    Route::put($uri, $callback);
+    Route::patch($uri, $callback);
+    Route::delete($uri, $callback);
+    Route::options($uri, $callback);
+
+make work route for any (get/post) 
+    Route::any('/', [UserController::class, 'index']);
+
+make work route for match (get/post) 
+    Route::match(['get', 'post'], '/', [UserController::class, 'index']);
+
+If you are defining a route that redirects to another URI, you may use the Route::redirect method
+    Route::redirect('/here', '/there');
+
+Route to return view Direct with data
+    Route::view('/welcome', 'welcome', ['name' => 'Taylor']); (route,filename,data)
+
+Required Parameters
+    Route::get('/user/{id}', [UserController::class, 'index']);
+
+Optional Parameters
+    Route::get('/user/{id?}', [UserController::class, 'index']);
+
+Regular Expression Constraints
+    
+    -works only for character
+        Route::get('/user/{name}', function (string $name) {
+            // ...
+        })->where('name', '[A-Za-z]+');
+    
+    -digit and character
+        Route::get('/user/{id}/{name}', function (string $id, string $name) {
+            // ...
+        })->where(['id' => '[0-9]+', 'name' => '[a-z]+']);
+        
+        same 
+
+        Route::get('/user/{id}/{name}', function (string $id, string $name) {
+            // ...
+        })->whereNumber('id')->whereAlpha('name');
+    
+    - Available options
+        whereNumber
+        whereAlpha
+        whereAlphaNumeric
+        whereIn (->whereIn('category', ['movie', 'song', 'painting']);)
+
+Global Constraints
+
+    If you would like a route parameter to always be constrained by a given regular expression, you may use the pattern method. You should define these patterns in the boot method of your App\Providers\RouteServiceProvider class:
+
+    Ex.
+
+        public function boot(): void
+        {
+            Route::pattern('id', '[0-9]+');
+        }
+
+        Route::get('/user/{id}', function (string $id) {
+            // Only executed if {id} is numeric...
+        });
+
+Generating URLs To Named Routes
+    
+    Route::get('/user/profile',[UserProfileController::class, 'show'])->name('profile');
+    
+    -Generating URLs...
+        $url = route('profile');
+    
+    -Generating Redirects...
+        return redirect()->route('profile');
+        return to_route('profile');
+
+Pass parameter to route by name
+
+    Route::get('/user/{id}/profile', function (string $id) { // ...})->name('profile');
+    $url = route('profile', ['id' => 1, 'photos' => 'yes']);
+
+
+Middleware group
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    });
+
+    Route::middleware(['first', 'second'])->group(function () {
+        Route::get('/', function () {
+            // Uses first & second middleware...
+        });
+    
+        Route::get('/user/profile', function () {
+            // Uses first & second middleware...
+        });
+    });
+
+
+Controllers group
+
+    use App\Http\Controllers\OrderController;
+ 
+    Route::controller(OrderController::class)->group(function () {
+        Route::get('/orders/{id}', 'show');
+        Route::post('/orders', 'store');
+    });
+
+Route Prefixes
+
+    Route::prefix('admin')->group(function () {
+        Route::get('/users', function () {
+            // Matches The "/admin/users" URL
+        });
+    });
+
+Route Name Prefixes
+
+    Route::name('admin.')->group(function () {
+        Route::get('/users', function () {
+            // Route assigned name "admin.users"...
+        })->name('users');
+    });
+
+Fallback Routes (override 404)
+
+    Route::fallback(function () {
+        // ...
+    });
+
+Assigning Middleware To Routes
+
+    use App\Http\Middleware\Authenticate;
+
+    single
+        Route::get('/profile', function () {
+            // ...
+        })->middleware(Authenticate::class);
+    
+    multiple
+        Route::get('/', function () {
+            // ...
+        })->middleware([First::class, Second::class]);
+
+Assigning Middleware To Routes with alias
+
+    define 'auth' in $middlewareAliases property of kernel.php inside Http
+
+    Route::get('/profile', function () {
+        // ...
+    })->middleware('auth');
+
+In Blade route with parameteres
+    route('user_mail_content',['id' => Base64_encode($msgid[array_search($maildatedesc[$i],$maildate)]),'mailfolder'=>$folder,'email'=>$email])

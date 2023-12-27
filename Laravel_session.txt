@@ -1,0 +1,49 @@
+Configuration
+  Your application's session configuration file is stored at config/session.php
+  default session data are stored at file.
+  The session driver configuration option defines where session data will be stored for each request. Laravel ships with several great drivers out of the box:
+
+Database as session driver
+  create session table
+  command 
+    php artisan session:table
+
+Retrieving Data
+  $request->session()->get('key');
+  $value = $request->session()->get('key', 'default');
+
+The Global Session Helper
+  // Retrieve a piece of data from the session...
+  $value = session('key');
+
+  // Specifying a default value...
+  $value = session('key', 'default');
+
+  // Store a piece of data in the session...
+  session(['key' => 'value']);
+
+Retrieving All Session Data
+  $data = $request->session()->all();
+
+Determining If An Item Exists In The Session
+  if ($request->session()->has('users')) {
+    // ...
+  }
+  $request->session()->exists('users')
+  $request->session()->missing('users')
+
+Storing Data
+  // Via a request instance...
+  $request->session()->put('key', 'value');
+ 
+  // Via the global "session" helper...
+  session(['key' => 'value']);
+
+Deleting Data
+  // Forget a single key...
+  $request->session()->forget('name');
+   
+  // Forget multiple keys...
+  $request->session()->forget(['name', 'status']);
+   
+  $request->session()->flush();

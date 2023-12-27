@@ -1,0 +1,193 @@
+Displaying Unescaped Data
+
+  By default, Blade {{ }} statements are automatically sent through PHP's htmlspecialchars function to prevent XSS attacks. If you do not want your data to be escaped, you may use the following syntax:
+    Hello, {!! $name !!}.
+
+
+@auth
+    // The user is authenticated...
+@endauth
+@guest
+    // The user is not authenticated...
+@endguest
+
+
+@auth('admin')
+    // The user is authenticated...
+@endauth
+@guest('admin')
+    // The user is not authenticated...
+@endguest
+
+Layouts Using Template Inheritance
+
+  <!-- resources/views/layouts/app.blade.php -->
+ 
+  <html>
+      <head>
+          <title>App Name - @yield('title')</title>
+      </head>
+      <body>
+          @section('sidebar')
+              This is the master sidebar.
+          @show
+   
+          <div class="container">
+              @yield('content')
+          </div>
+      </body>
+  </html>
+
+  Blade file
+
+  @extends('layouts.app')
+   
+  @section('title', 'Page Title')
+   
+  @section('sidebar')
+      @parent
+   
+      <p>This is appended to the master sidebar.</p>
+  @endsection
+   
+  @section('content')
+      <p>This is my body content.</p>
+  @endsection
+
+Conditional Classes & Styles
+
+  @php
+    $isActive = false;
+    $hasError = true;
+  @endphp
+  <span @class(['p-4','font-bold' => $isActive,'text-gray-500' => ! $isActive,'bg-red' => $hasError,])></span>  ------>  <span class="p-4 text-gray-500 bg-red"></span>
+
+  @php
+      $isActive = true;
+  @endphp
+  <span @style(['background-color: red','font-weight: bold' => $isActive,])></span> ----------->  <span style="background-color: red; font-weight: bold;"></span>
+
+Additional Attributes
+
+  <input type="checkbox" name="active" value="active" @checked(old('active', $user->active)) />
+  <select name="version">
+      @foreach ($product->versions as $version)
+          <option value="{{ $version }}" @selected(old('version') == $version)>
+              {{ $version }}
+          </option>
+      @endforeach
+  </select>
+  <button type="submit" @disabled($errors->isNotEmpty())>Submit</button>
+  <input type="email" name="email" value="email@laravel.com" @readonly($user->isNotAdmin()) />
+  <input type="text" name="title" value="title" @required($user->isAdmin()) />
+
+Including Subviews
+  All variables that are available to the parent view will be made available to the included view:
+  <div>
+      @include('shared.errors')
+      <form><!-- Form Contents --></form>
+  </div>
+  
+  pass an array of additional data that should be made available to the included view
+  @include('view.name', ['status' => 'complete'])
+
+  @includeIf('view.name', ['status' => 'complete'])
+
+Rendering Views For Collections
+  @each('view.name', $jobs, 'job', 'view.empty')
+
+portion of the template that will only be evaluated once per rendering cycle
+  @once
+      @push('scripts')
+          <script>
+              // Your custom JavaScript...
+          </script>
+      @endpush
+  @endonce
+
+include model in blade file
+  @use('App\Models\Flight')
+
+Components
+  Command
+    php artisan make:component Alert ( creted at resources/views/components , can also use Forms/Input to creted at resources/views/components/Forms/Input)
+
+Manually Registering Package Components
+  However, if you are building a package that utilizes Blade components, you will need to manually register your component class and its HTML tag alias. You should typically register your components in the boot method of 
+  your package's service provider:
+  
+  public function boot(): void
+  {
+      Blade::component('package-alert', Alert::class);
+  }
+  Usage
+    <x-package-alert/> (small and space replaced with -)
+
+  Alternatively, you may use the componentNamespace method to autoload component classes by convention. For example, a Nightshade package might have Calendar and ColorPicker components that reside within the   
+  Package\Views\Components namespace:
+
+  use Illuminate\Support\Facades\Blade;
+   
+  /**
+   * Bootstrap your package's services.
+   */
+  public function boot(): void
+  {
+      Blade::componentNamespace('Nightshade\\Views\\Components', 'nightshade');
+  }
+  Usage
+    <x-nightshade::calendar /> (small and space replaced with -)
+    <x-nightshade::color-picker /> (small and space replaced with -)
+
+  default app/View/Components if want to get the app/View/Components/Inputs/Button.php then ------> <x-inputs.button/>
+
+Passing Data To Components
+  <x-alert type="error" :message="$message"/>
+
+  Define at component
+    <?php
+     
+      namespace App\View\Components;
+       
+      use Illuminate\View\Component;
+      use Illuminate\View\View;
+       
+      class Alert extends Component
+      {
+          /**
+           * Create the component instance.
+           */
+          public function __construct(
+              public string $type,
+              public string $message,
+          ) {}
+       
+          /**
+           * Get the view / contents that represent the component.
+           */
+          public function render(): View
+          {
+              return view('components.alert');
+          }
+      }
+      Usage 
+        <div class="alert alert-{{ $type }}">
+            {{ $message }}
+        </div>  
+
+Casing
+  at component camelcase at blade small and - at the each capital letters
+
+  public function __construct(
+      public string $alertType,
+  ) {}
+  <x-alert alert-type="danger" />
+
+Short Attribute Syntax
+    {{-- Short attribute syntax... --}}
+    <x-profile :$userId :$name />
+     
+    {{-- Is equivalent to... --}}
+    <x-profile :user-id="$userId" :name="$name" />
+          
+

@@ -1,0 +1,103 @@
+Accessing The Request
+  use Illuminate\Http\Request;
+    public function store(Request $request)
+    {
+        $name = $request->input('name');
+ 
+        // Store the user...
+ 
+        return redirect('/users');
+    }
+
+Retrieving The Request Path
+  $uri = $request->path();
+
+Inspecting The Request Path / Route
+  The is method allows you to verify that the incoming request path matches a given pattern. You may use the * character as a wildcard when utilizing this method:
+  if ($request->is('admin/*')) {
+      // ...
+  }
+
+  Using the routeIs method, you may determine if the incoming request has matched a named route:
+  if ($request->routeIs('admin.*')) {
+      // ...
+  }
+
+Retrieving The Request URL
+  $url = $request->url(); URL without the query string
+  $urlWithQueryString = $request->fullUrl(); URL with query string
+
+Add a query string variables to existing
+  $request->fullUrlWithQuery(['type' => 'phone']);
+
+get the current URL without a given query string parameter
+  $request->fullUrlWithoutQuery(['type']);
+
+Retrieving The Request Host
+  $request->host();
+  $request->httpHost();
+  $request->schemeAndHttpHost();
+
+Retrieving The Request Method
+  $method = $request->method();
+
+Check The Request Method
+  if ($request->isMethod('post')) {
+      // ...
+  }
+
+Request Headers
+  $value = $request->header('X-Header-Name'); get 
+  $value = $request->header('X-Header-Name', 'default'); get if not than return  default
+
+  The hasHeader method may be used to determine if the request contains a given header:
+  if ($request->hasHeader('X-Header-Name')) {
+      // ...
+  }
+
+Get bearerToken From Authorization Header
+  $token = $request->bearerToken();
+
+Request IP Address
+  $ipAddress = $request->ip();
+
+Retrieving All Input Data
+  $input = $request->all();
+
+Retrieving An Input Value
+  $name = $request->input('name');
+  $name = $request->input('name', 'Sally'); if not present then will return second
+
+Retrieving Input From The Query String
+  $name = $request->query('name');
+  $name = $request->query('name', 'Helen'); if not present then will return second
+
+Retrieving A Portion Of The Input Data
+  $input = $request->only(['username', 'password']);
+  $input = $request->only('username', 'password');  
+  $input = $request->except(['credit_card']);
+  $input = $request->except('credit_card');
+
+Determining If Input Is Present
+
+  if ($request->has('name')) {
+    
+  }
+  if ($request->has(['name', 'email'])) {
+  }
+  The hasAny method returns true if any of the specified values are present:
+  The whenHas method will execute the given closure if a value is present on the request:
+  $request->whenHas('name', function (string $input) {
+      // ...
+  });
+
+Retrieving Old Input
+  $username = $request->old('username')
+
+Retrieving Uploaded Files
+  $file = $request->file('photo');
+  $file = $request->photo;
+  hasFile
+  if ($request->file('photo')->isValid()) {
+      // ...
+  }

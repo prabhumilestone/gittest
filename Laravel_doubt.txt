@@ -1,0 +1,14 @@
+1 ) how to access the env varibale 
+    - app()->environment() ( not able to find for name )
+
+2 ) how to access other varibale that are inside config folder's files for example app.php ? 
+    - config('global.placetel_api_key')
+
+3 ) factories vs seeders ? 
+    - factories provide random data for example different phone number
+    - seeders static
+
+4 ) Service Container
+
+
+5 ) Service Providers

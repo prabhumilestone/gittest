@@ -1,0 +1,393 @@
+Command to create model,migrations and controller
+
+    -php artisan make:model -mrc Chirp
+
+Table Names
+    Flight model stores records in the flights table
+    while an AirTrafficController model would store records in an air_traffic_controllers
+
+    if no naming connvention 
+    protected $table = 'my_flights';
+
+Primary Keys
+    always id else
+    protected $primaryKey = 'flight_id';
+    can use find instead of where('id',$id) ==> find($id);
+
+non-incrementing or a non-numeric primary key
+    If you wish to use a non-incrementing or a non-numeric primary key you must define a public $incrementing property on your model that is set to false:
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+Timestamps (by default there else)
+    public $timestamps = false;
+
+Customize the names of dates 
+    const CREATED_AT = 'creation_date';
+    const UPDATED_AT = 'updated_date';
+
+Default Attribute Values
+
+    protected $attributes = [
+        'options' => '[]',
+        'delayed' => false,
+    ];
+
+if no result is found, an Illuminate\Database\Eloquent\ModelNotFoundException will be thrown:
+    findOrFail
+
+Retrieving Or Creating Models
+
+    Retrieve flight by name or create it if it doesn't exist...
+    $flight = Flight::firstOrCreate([
+        'name' => 'London to Paris'
+    ]);
+
+    Retrieve flight by name or create it with the name, delayed, and arrival_time attributes...
+    $flight = Flight::firstOrCreate(
+        ['name' => 'London to Paris'],
+        ['delayed' => 1, 'arrival_time' => '11:30']
+    );
+
+Mass Updates
+    Flight::where('active', 1)
+      ->where('destination', 'San Diego')
+      ->update(['delayed' => 1]);
+
+Examining Attribute Changes
+
+    $user = User::create([
+        'first_name' => 'Taylor',
+        'last_name' => 'Otwell',
+        'title' => 'Developer',
+    ]);
+    
+    $user->title = 'Painter';
+    
+    $user->isDirty(); // true
+    $user->isDirty('title'); // true
+    $user->isDirty('first_name'); // false
+    $user->isDirty(['first_name', 'title']); // true
+    
+    $user->isClean(); // false
+    $user->isClean('title'); // false
+    $user->isClean('first_name'); // true
+    $user->isClean(['first_name', 'title']); // false
+    
+    $user->save();
+    
+    $user->isDirty(); // false
+    $user->isClean(); // true
+
+
+wasChanged 
+    if any attributes were changed when the model was last saved within the current request cycle:
+
+    $user = User::create([
+        'first_name' => 'Taylor',
+        'last_name' => 'Otwell',
+        'title' => 'Developer',
+    ]);
+    
+    $user->title = 'Painter';
+    
+    $user->save();
+    
+    $user->wasChanged(); // true
+    $user->wasChanged('title'); // true
+    $user->wasChanged(['title', 'slug']); // true
+    $user->wasChanged('first_name'); // false
+    $user->wasChanged(['first_name', 'title']); // true
+
+The getOriginal method returns an array containing the original attributes of the model regardless of any changes to the model since it was retrieved
+
+    $user = User::find(1);
+    
+    $user->name; // John
+    $user->email; // john@example.com
+    
+    $user->name = "Jack";
+    $user->name; // Jack
+    
+    $user->getOriginal('name'); // John
+    $user->getOriginal(); // Array of original attributes...
+
+Mass Assignment
+
+    $flight = Flight::create([
+        'name' => 'London to Paris',
+    ]);
+
+fillable use in the case of mass Assignment ( create );
+
+
+If you already have a model instance, you may use the fill method to populate it with an array of attributes:
+
+    $flight->fill(['name' => 'Amsterdam to Frankfurt']);
+
+Allowing Mass Assignment
+    to allow all for mass assigne make guarded to blank array
+    protected $guarded = [];
+
+Upserts
+    if a flight exists with a departure location of Oakland and a destination location of San Diego, its price and discounted columns will be updated. If no such flight exists, a new flight will be created which has the attributes resulting from merging the first argument array with the second argument array
+
+    $flight = Flight::updateOrCreate(
+        ['departure' => 'Oakland', 'destination' => 'San Diego'],
+        ['price' => 99, 'discounted' => 1]
+    );
+
+First array that needs to consists of the values to insert or update ,  second argument lists the column(s) that uniquely identify records within the associated table , The method's third and final argument is an array of the columns that should be updated if a matching record already exists in the database.
+    Flight::upsert([
+        ['departure' => 'Oakland', 'destination' => 'San Diego', 'price' => 99],
+        ['departure' => 'Chicago', 'destination' => 'New York', 'price' => 150]
+    ], ['departure', 'destination'], ['price']);
+
+
+Deleting Models
+
+    $flight = Flight::find(1);
+    
+    $flight->delete();
+ 
+    The truncate operation will also reset any auto-incrementing IDs on the model's associated table:
+        Flight::truncate();
+
+Deleting An Existing Model By Its Primary Key
+    Flight::destroy(1);
+     
+    Flight::destroy([1, 2, 3]); 
+
+Soft Deleting
+
+    add in modal
+    use Illuminate\Database\Eloquent\SoftDeletes;
+    use SoftDeletes;
+
+    Now, when you call the delete method on the model, the deleted_at column will be set to the current date and time. However, the model's database record will be left in the table. When querying a model that uses soft deletes, the soft deleted models will automatically be excluded from all query results.
+
+    To determine if a given model instance has been soft deleted, you may use the trashed method:
+        if ($flight->trashed()) {
+            // ...
+        }
+
+Restoring Soft Deleted Models
+    The restore method will set the model's deleted_at column to null:
+    $flight->restore();
+
+Permanently Deleting Models
+    $flight->forceDelete();
+
+
+by default model will return only not soft deleted modals
+
+Including Soft Deleted Models
+    Flight::withTrashed()
+    ->where('account_id', 1)
+    ->get();
+
+Retrieving Only Soft Deleted Models
+    $flights = Flight::onlyTrashed()
+                ->where('airline_id', 1)
+                ->get();
+
+Pruning Models
+    add lines in model
+        
+        -at start
+            use Illuminate\Database\Eloquent\Prunable;
+    
+        -inside class
+            use Prunable;
+
+            public function prunable(): Builder
+            {
+                return static::where('created_at', '<=', now()->subMonth());
+            }
+
+pruning 
+    -you may also define a pruning method on the model. This method will be called before the model is deleted.
+
+    protected function pruning(): void
+    {
+        // ...
+    }
+
+Delete Pruning model using kernel command
+    $schedule->command('model:prune')->daily();
+
+    $schedule->command('model:prune', [
+        '--except' => [Address::class, Flight::class],
+    ])->daily();
+
+When pretending, the model:prune command will simply report how many records would be pruned if the command were to actually run:
+    php artisan model:prune --pretend
+
+Events
+    retrieved, creating, created, updating, updated, saving, saved, deleting, deleted, trashed, forceDeleting, forceDeleted, restoring, restored, and replicating.
+
+        -ing are dispatched before any changes to the model are persisted, while events ending with -ed are dispatched after the changes to the model are persisted.
+
+    protected $dispatchesEvents = [
+        'saved' => UserSaved::class,
+        'deleted' => UserDeleted::class,
+    ];
+
+
+Observers
+    If you are listening for many events on a given model, you may use observers to group all of your listeners into a single class
+
+    php artisan make:observer UserObserver --model=User
+
+    To register an observer, you need to call the observe method on the model you wish to observe. You may register observers in the boot method of your application's App\Providers\EventServiceProvider service provider:
+
+        public function boot(): void
+        {
+            User::observe(UserObserver::class);
+        }
+
+    Using service Providers
+    protected $observers = [
+        User::class => [UserObserver::class],
+    ];
+
+
+in all relations first argument is model , foreign_key of the model in first argument , primary key of a main model
+
+hasOne
+    use Illuminate\Database\Eloquent\Relations\HasOne;
+    class User extends Model
+    {
+        /**
+        * Get the phone associated with the user.
+        */
+        public function phone()
+        {
+            return $this->hasOne(Phone::class);
+            OR
+            return $this->hasOne(Phone::class, 'foreign_key'); // user_id !=foreign_key
+            OR
+            return $this->hasOne(Phone::class, 'foreign_key', 'local_key'); // user_id !=foreign_key && local_key!= id of user table
+
+        }
+    }
+
+    use 
+    $phone = User::find(1)->phone;
+
+BelongsTo
+    use Illuminate\Database\Eloquent\Relations\BelongsTo;
+    class Phone extends Model
+    {
+        /**
+        * Get the user that owns the phone.
+        */
+        public function user()
+        {
+            return $this->belongsTo(User::class);
+            return $this->belongsTo(User::class, 'foreign_key');
+            return $this->belongsTo(User::class, 'foreign_key', 'local_key');
+        }
+    }
+
+hasMany
+    use Illuminate\Database\Eloquent\Relations\HasMany;
+    class Post extends Model
+    {
+        /**
+        * Get the comments for the blog post.
+        */
+        public function comments()
+        {
+            return $this->hasMany(Comment::class);
+            return $this->hasMany(Comment::class, 'foreign_key');
+            return $this->hasMany(Comment::class, 'foreign_key', 'local_key');
+        }
+    }
+
+belongsToMany
+    use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+    class User extends Model
+    {
+        /**
+        * The roles that belong to the user.
+        */
+        public function roles()
+        {
+            return $this->belongsToMany(Role::class);
+        }
+    }
+
+Default Models (when no data at belongsTo)
+    return $this->belongsTo(User::class)->withDefault([
+        'name' => 'Guest Author',
+    ]);
+
+Querying Belongs To Relationships
+
+    use App\Models\Post;
+    $posts = Post::where('user_id', $user->id)->get();
+    
+    the whereBelongsTo method, which will automatically determine the proper relationship and foreign key for the given model
+        $posts = Post::whereBelongsTo($user)->get();
+
+
+Use of Relations
+    use App\Models\Comment;
+    $comment = Comment::find(1);
+    return $comment->post->title;
+
+Grouping
+    $user->posts()
+    ->where(function (Builder $query) {
+        return $query->where('active', 1)
+                        ->orWhere('votes', '>=', 100);
+    })
+    ->get();
+
+Querying Relationship Existence
+    // Retrieve all posts that have at least one comment...
+    $posts = Post::has('comments')->get();
+    // Retrieve all posts that have three or more comments...
+    $posts = Post::has('comments', '>=', 3)->get();
+    // Retrieve posts that have at least one comment with images...
+    $posts = Post::has('comments.images')->get();
+
+
+
+$company_list = Company::with('user:id,first_name,last_name,email,phone_no,country')
+    ->withCount('followers')
+    ->where(function ($query) use ($search) {
+        $query->where('companies.name', 'LIKE', '%' . $search . '%')
+            ->orWhere('companies.sector', 'LIKE', '%' . $search . '%')
+            ->orWhere('companies.country', 'LIKE', '%' . $search . '%')
+            ->orWhere('companies.city', 'LIKE', '%' . $search . '%')
+            ->orWhere('companies.about', 'LIKE', '%' . $search . '%');
+    });
+
+$query = Category::with(['children' => function ($query) {
+            $query->select('id', 'name', 'image', 'parent_id');
+        }]);
+
+
+$names = User::all()->reject(function (User $user) {
+    return $user->active === false;
+})->map(function (User $user) {
+    return $user->name;
+});
+
+toJson && toArray
+
+    $user = User::find(1);
+    return $user->toJson();
+    return $user->toArray();
+
+Hiding Attributes From JSON OR Array
+
+    protected $hidden = ['password'];
+
+visible  Attributes From JSON OR Array
+
+    protected $visible = ['first_name', 'last_name'];

@@ -1,0 +1,43 @@
+Install Laravel
+    - composer create-project laravel/laravel folder/project_name
+    - cd folder/project_name
+    - php artisan key:generate
+    - php artisan vendor:publish
+
+    
+Serve The App 
+    - php artisan sevre || php -S localhost:8000 -t public/
+
+
+Authentication
+    Jetstream
+        -composer require laravel/jetstream 
+        -php artisan jetstream:install livewire
+        -npm install
+        -npm run dev
+        -php artisan migrate
+
+    UI 
+        -composer require laravel/ui
+        -php artisan ui bootstrap --auth
+        -npm install
+        -npm run dev
+        -php artisan migrate
+
+    Breeze
+        -composer require laravel/breeze --dev
+        -php artisan breeze:install blade
+        -npm install
+        -npm run dev
+        -php artisan migrate
+
+Command to create model,migrations and controller
+
+    -php artisan make:model -mrc Chirp
+
+List all route
+    -php artisan route:list
+
+Create Resource Controllers for Default Crud
+    -php artisan make:controller PhotoController --resource
+

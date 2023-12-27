@@ -1,0 +1,115 @@
+Methods
+    Two 
+        -up,down
+        -The up method is used to add new tables, columns, or indexes to your database, while the down method should reverse the operations performed by the up method.
+
+Setting The Migration Connection
+
+    If your migration will be interacting with a database connection other than your application's default database connection, you should set the $connection property of your migration:
+        -protected $connection = 'pgsql';
+
+always create new file for migration , i.e. for change in any column or table create new migration file
+
+see the SQL statements that will be executed by the migrations without actually running them
+    php artisan migrate --pretend
+
+Rolling Back Migrations
+    -php artisan migrate:rollback
+
+Creating Tables
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('email');
+        $table->timestamps();
+    });
+
+Checking For Table / Column Existence
+
+    if (Schema::hasTable('users')) {
+        // The "users" table exists...
+    }
+    
+    if (Schema::hasColumn('users', 'email')) {
+        // The "users" table exists and has an "email" column...
+    }
+
+Database Connection & Table Options
+
+    Schema::connection('sqlite')->create('users', function (Blueprint $table) {
+        $table->id();
+    });
+
+Updating Tables 
+
+    Schema::table('users', function (Blueprint $table) {
+        $table->integer('votes');
+    });
+
+Renaming / Dropping Tables
+
+    Schema::rename($from, $to);
+    Schema::drop('users');
+    Schema::dropIfExists('users');
+
+Available Column Types
+    -bigIncrements (auto-incrementing UNSIGNED BIGINT)
+    -bigInteger 
+    -binary(BLOB)
+    -boolean
+    -char ( char('name', 100)  )
+    -dateTimeTz ( with timezone )
+    -dateTime 
+    -date
+    -decimal (name,10,2)
+    -double (name,10,2)
+    -enum ('difficulty', ['easy', 'hard'])
+    -float ('amount', 8, 2 )
+    -longText
+    -nullable ( $table->string('email')->nullable(); )
+    -timestamps ($table->timestamps($precision = 0);) create updated_at and created_at
+    -morphs ( $table->morphs('taggable'); -> create 2 column taggable_id,$table->morphs('taggable');)
+    -softDeletesTz
+    -softDeletes ( create deleted_at TIMESTAMP )
+
+Default and Comment 
+
+    ->default(1)->comment('my comment')
+
+Renaming Columns
+
+    $table->renameColumn('from', 'to');
+
+Dropping Columns
+
+    $table->dropColumn('votes');
+    $table->dropColumn(['votes', 'avatar', 'location']);
+
+dropTimestamps (Drop the created_at and updated_at columns.)
+
+useCurrent (Set TIMESTAMP columns to use CURRENT_TIMESTAMP as default value.)
+
+useCurrentOnUpdate (Set TIMESTAMP columns to use CURRENT_TIMESTAMP when a record is updated)
+
+Modifying Columns
+
+    Schema::table('users', function (Blueprint $table) {
+        $table->string('name', 50)->change();
+    });
+
+dropMorphs (Drop the morphable_id and morphable_type columns.)
+
+Creating Indexes
+
+    Schema::table('users', function (Blueprint $table) {
+        $table->string('email')->unique();
+    });
+
+Foreign Key Constraints
+
+    Schema::table('posts', function (Blueprint $table) {
+        $table->unsignedBigInteger('user_id');
+    
+        $table->foreign('user_id')->references('id')->on('users');
+        ->onDelete('cascade'); to delete the posts on user delete
+    });

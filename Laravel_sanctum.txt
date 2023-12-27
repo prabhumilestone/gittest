@@ -1,0 +1,19 @@
+Install
+    -composer require laravel/sanctum
+    --- command for vendor publish
+    -php artisan migrate
+
+Use
+
+Create Token at login time in api login_check.
+
+    if (Auth::attempt($credentials)) {
+        $authUser = Auth::user();
+        $success['token'] = $authUser->createToken('MyAuthApp')->plainTextToken;
+        
+        return $this->sendResponse($success, 'User signed in');
+    }
+
+    - in Authorization as Bearer add token 
+    - at the api call in header add the Accept -> application/json 
+

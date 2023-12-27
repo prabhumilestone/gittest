@@ -1,0 +1,41 @@
+Single Action Controllers
+
+  If a controller action is particularly complex, you might find it convenient to dedicate an entire controller class to that single action. To accomplish this, you may define a single __invoke method within the controller:
+  namespace App\Http\Controllers;
+   
+  class ProvisionServer extends Controller
+  {
+      /**
+       * Provision a new web server.
+       */
+      public function __invoke()
+      {
+          // ...
+      }
+  }
+  at rpute no need to define the method
+  Route::post('/server', ProvisionServer::class);
+
+  Command
+    -php artisan make:controller ProvisionServer --invokable
+
+Use middleware inside the controller
+  public function __construct()
+      {
+          $this->middleware('auth');
+          $this->middleware('log')->only('index');
+          $this->middleware('subscribed')->except('store');
+      }
+Register middleware inside the controller
+  use Closure;
+  use Illuminate\Http\Request;
+   
+  $this->middleware(function (Request $request, Closure $next) {
+      return $next($request);
+  });
+
+Resource Controllers
+  CRUD controller
+  Command 
+    php artisan make:controller PhotoController --resource
+

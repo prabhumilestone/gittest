@@ -1,0 +1,83 @@
+Command
+  php artisan make:mail OrderShipped
+
+in controller 
+  use Mail;
+  use App\Mail\DemoMail;
+  $mailData = [
+      'body' => 'Please see the attached article file.',
+      'attachment' => public_path('uploads/article/'.$filename),
+  ];    
+  Mail::to($value->customer_email)->send(new DemoMail($mailData));
+  Mail::to($request->user())
+    ->cc($moreUsers)
+    ->bcc($evenMoreUsers)
+    ->send(new OrderShipped($order));
+
+in side mailable
+  public $mailData;
+  
+  /**
+   * Create a new message instance.
+   */
+  public function __construct($mailData)
+  {
+      $this->mailData = $mailData;
+  }
+
+  public function build()
+  {
+      return $this->view('emails.demoMail')
+                  // ->subject($this->mailData['title'])
+                  ->attach($this->mailData['attachment']); // This line attaches the file to the email
+  }
+
+  public function envelope(): Envelope
+  {
+      return new Envelope(
+          from: new Address('jeffrey@example.com', 'Jeffrey Way'),
+          subject: 'Order Shipped',
+      );
+  }
+
+  public function content(): Content
+  {
+      return new Content(
+          view: 'emails.demoMail',
+      );
+  }
+
+  /**
+   * Get the attachments for the message.
+   *
+   * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+   */
+  public function attachments(): array
+  {
+      return [
+          Attachment::fromPath('/path/to/file')
+                  ->as('name.pdf')
+                  ->withMime('application/pdf'),
+      ];
+  }
+
+Using A Global from Address
+  address in your config/mail.php
+  'from' => [
+      'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+      'name' => env('MAIL_FROM_NAME', 'Example'),
+  ],
+  'reply_to' => ['address' => 'example@example.com', 'name' => 'App Name'],
+
+Plain Text Emails
+  public function content(): Content
+  {
+      return new Content(
+          view: 'mail.orders.shipped',
+          text: 'mail.orders.shipped-text'
+      );
+  }
+  return new Content(
+      html: 'mail.orders.shipped',
+      text: 'mail.orders.shipped-text'
+  );

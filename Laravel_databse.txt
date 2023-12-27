@@ -1,0 +1,79 @@
+use Illuminate\Support\Facades\DB;
+Running A Select Query
+  $users = DB::select('select * from users where active = ?', [1]);
+
+Running An Update Statement
+  $affected = DB::update(
+      'update users set votes = 100 where name = ?',
+      ['Anita']
+  );
+
+Running A Delete Statement  
+  $deleted = DB::delete('delete from users');
+
+Running A General Statement
+  DB::statement('drop table users');
+
+Using Multiple Database Connections
+  DB::connection('sqlite')->select(/* ... */);
+
+Database Transactions
+  DB::transaction(function () {
+      DB::update('update users set votes = 1');
+   
+      DB::delete('delete from posts');
+  });
+
+Retrieving A List Of Column Values
+  $titles = DB::table('users')->pluck('title', 'name');
+ 
+  foreach ($titles as $name => $title) {
+      echo $title;
+  }
+
+Determining If Records Exist
+  if (DB::table('orders')->where('finalized', 1)->exists()) {
+  
+  }
+
+If you already have a query builder instance and you wish to add a column to its existing select clause, you may use the addSelect method:
+  $query = DB::table('users')->select('name');
+  $users = $query->addSelect('age')->get();
+
+Raw Expressions
+  $users = DB::table('users')
+             ->select(DB::raw('count(*) as user_count, status'))
+             ->where('status', '<>', 1)
+             ->groupBy('status')
+             ->get();
+
+$orders = DB::table('orders')
+                ->selectRaw('price * ? as price_with_tax', [1.0825])
+                ->get();
+
+$orders = DB::table('orders')
+                ->whereRaw('price > IF(state = "TX", ?, 100)', [200])
+                ->get();
+
+$orders = DB::table('orders')
+                ->orderByRaw('updated_at - created_at DESC')
+                ->get();
+
+$orders = DB::table('orders')
+                ->select('city', 'state')
+                ->groupByRaw('city, state')
+                ->get();
+
+$users = DB::table('users')
+            ->join('contacts', 'users.id', '=', 'contacts.user_id')
+            ->join('orders', 'users.id', '=', 'orders.user_id')
+            ->select('users.*', 'contacts.phone', 'orders.price')
+            ->get();
+
+$users = DB::table('users')
+            ->where('votes', '>', 100)
+            ->orWhere(function (Builder $query) {
+                $query->where('name', 'Abigail')
+                      ->where('votes', '>', 50);
+            })
+            ->get();

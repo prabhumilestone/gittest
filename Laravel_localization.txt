@@ -1,0 +1,21 @@
+Publishing The Language Files
+  to create a lang folder
+  php artisan lang:publish
+
+Configuring The Locale
+  use Illuminate\Support\Facades\App;
+  Route::get('/greeting/{locale}', function (string $locale) {
+      if (! in_array($locale, ['en', 'es', 'fr'])) {
+          abort(400);
+      }
+      App::setLocale($locale);
+  });
+
+Determining The Current Locale
+  use Illuminate\Support\Facades\App;
+  $locale = App::currentLocale();
+  if (App::isLocale('en')) {
+  }
+
+Usage 
+  __('messages.welcome'); ==== trans('messages.welcome')

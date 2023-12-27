@@ -1,0 +1,18 @@
+url("/posts/{$post->id}");
+// http://example.com/posts/1
+
+// Get the current URL without the query string...
+echo url()->current();
+ 
+// Get the current URL including the query string...
+echo url()->full();
+ 
+// Get the full URL for the previous request...
+echo url()->previous();
+
+Signed URLs
+  For example, you might use signed URLs to implement a public "unsubscribe" link that is emailed to your customers. To create a signed URL to a named route, use the signedRoute method of the URL facade:
+  
+  use Illuminate\Support\Facades\URL;
+ 
+  return URL::signedRoute('unsubscribe', ['user' => 1]);
